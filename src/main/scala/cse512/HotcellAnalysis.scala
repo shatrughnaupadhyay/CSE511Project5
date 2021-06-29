@@ -48,7 +48,7 @@ def runHotcellAnalysis(spark: SparkSession, pointPath: String): DataFrame =
   val x_avg = pickupInfo.count() / numCells
 
   // Calculate attribute value x for each cell. x_i = count of points within this cell i
-  var pickupCell = pickupInfo.groupBy(newCoordinateName:_*).count()
+  var pickupCell = pickupInfo.groupBy("x", "y", "z").count()
   pickupCell.withColumnRenamed("count", "attr")  // rename x_i to attr_i to differentiate from coordinate
   
   // add x_i squred to each cell
