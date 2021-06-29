@@ -5,6 +5,8 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.sql.functions.udf
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.functions.expr
+import scala.math.{pow, sqrt}
+
 
 object HotcellAnalysis {
   Logger.getLogger("org.spark_project").setLevel(Level.WARN)
@@ -45,7 +47,7 @@ def runHotcellAnalysis(spark: SparkSession, pointPath: String): DataFrame =
 
   // YOU NEED TO CHANGE THIS PART
   // Calculate X_bar = average number of pick-up points in one cell
-  val x_avg = pickupInfo.count() / numCells
+  val x_avg:Double = pickupInfo.count().toDouble / numCells
 
   // Calculate attribute value x for each cell. x_i = count of points within this cell i
   var pickupCell = pickupInfo.groupBy("x", "y", "z").count().withColumnRenamed("count", "attr")  // rename x_i to attr_i to differentiate from coordinate
@@ -54,6 +56,10 @@ def runHotcellAnalysis(spark: SparkSession, pointPath: String): DataFrame =
   pickupCell = pickupCell.withColumn("attr_2", expr("attr*attr"))
   pickupCell.show()
 
+  // calculate S
+  var S:Double = pickupCell.agg(sum("attr_2")).first.getAs[Long](0).toDouble
+  S = sqrt(S / numCells.toDouble - pow(x_avg, 2))
+  println("S="+S)
 
   return pickupInfo // YOU NEED TO CHANGE THIS PART
 }
