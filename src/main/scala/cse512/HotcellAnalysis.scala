@@ -83,6 +83,6 @@ def runHotcellAnalysis(spark: SparkSession, pointPath: String): DataFrame =
   println("displaying G score")
   cellGScore.show()
 
-  return cellGScore.select(col("x"), col("y"), col("z"))// YOU NEED TO CHANGE THIS PART
+  return cellGScore.select(col("x"), col("y"), col("z")).coalesce(1)// YOU NEED TO CHANGE THIS PART
 }
 }
