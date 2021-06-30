@@ -3,6 +3,7 @@ package cse512
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import scala.math.{pow, sqrt}
 
 object HotcellUtils {
   val coordinateStep = 0.01
@@ -30,8 +31,7 @@ object HotcellUtils {
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
     val parsedDate = dateFormat.parse(timestampString)
     val timeStamp = new Timestamp(parsedDate.getTime)
-    return timeStamp
-  }
+    return timeStamp }
 
   def dayOfYear (timestamp: Timestamp): Int =
   {
@@ -47,5 +47,8 @@ object HotcellUtils {
     return calendar.get(Calendar.DAY_OF_MONTH)
   }
 
-  // YOU NEED TO CHANGE THIS PART
+  def calculateG(attrAgg: Double, N: Double, n:Double, X_bar:Double, S:Double): Double = {
+    val G = (attrAgg - X_bar * N) / (S * sqrt((n*N-pow(N, 2)) / (n-1)))
+    return G
+  }
 }
