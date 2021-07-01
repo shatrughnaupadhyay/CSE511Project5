@@ -47,7 +47,7 @@ def runHotcellAnalysis(spark: SparkSession, pointPath: String): DataFrame =
 
   // YOU NEED TO CHANGE THIS PART
   // Calculate X_bar = average number of pick-up points in one cell
-  val x_mean:Double = pickupInfo.count().toDouble / numCells
+  val x_mean:Double = pickupInfo.count().toDouble / numCells.toDouble
 
   // Calculate attribute value x for each cell. x_i = count of points within this cell i
   var pickupCell = pickupInfo.groupBy("x", "y", "z").count().withColumnRenamed("count", "attr")  // rename x_i to attr_i to differentiate from coordinate
@@ -57,7 +57,7 @@ def runHotcellAnalysis(spark: SparkSession, pointPath: String): DataFrame =
   pickupCell.show()
 
   // calculate S
-  var S:Double = pickupCell.agg(sum("attr_2")).first.getAs[Long](0).toDouble
+  var S:Double = pickupCell.agg(sum("attr_2")).first.getLong(0).toDouble
   S = sqrt(S / numCells.toDouble - pow(x_mean, 2))
   println("S="+S)
 
@@ -66,8 +66,9 @@ def runHotcellAnalysis(spark: SparkSession, pointPath: String): DataFrame =
   var neighborCellAttr = pickupCell.as("df1").join(pickupCell.as("df2"),
     (col("df1.x") === col("df2.x") - 1 || col("df1.x") === col("df2.x") + 1 || col("df1.x") === col("df2.x")) &&
     (col("df1.y") === col("df2.y") - 1 || col("df1.y") === col("df2.y") + 1 || col("df1.y") === col("df2.y")) &&
-    (col("df1.z") === col("df2.z") - 1 || col("df1.z") === col("df2.z") + 1 || col("df1.z") === col("df2.z")),
-    "inner").select(col("df1.x").as("x"), col("df1.y").as("y"), col("df1.z").as("z"), col("df2.attr").as("attr"))
+    (col("df1.z") === col("df2.z") - 1 || col("df1.z") === col("df2.z") + 1 || col("df1.z") === col("df2.z"))// &&
+    //!(col("df1.x") === col("df2.x") && col("df1.y") === col("df2.y") && col("df1.z") === col("df2.z")),
+    ,"inner").select(col("df1.x").as("x"), col("df1.y").as("y"), col("df1.z").as("z"), col("df2.attr").as("attr"))
   println("displaying neighboring cell attribute value")
   neighborCellAttr.show()
 
@@ -79,10 +80,13 @@ def runHotcellAnalysis(spark: SparkSession, pointPath: String): DataFrame =
   // calculate G
   spark.udf.register("calculateG", (attr_agg:Int, N:Int) => ((HotcellUtils.calculateG(attr_agg.toDouble, N.toDouble, numCells.toDouble, x_mean, S))))
   neighborCountAgg.createOrReplaceTempView("neighborCountAgg")
-  val cellGScore = spark.sql("select x, y, z, calculateG(sum_attr, N) as G from neighborCountAgg order by G DESC LIMIT 50")
+  val cellGScore = spark.sql("select x, y, z, calculateG(sum_attr, N) as G from neighborCountAgg order by G DESC, x DESC, y DESC, z DESC")
   println("displaying G score")
   cellGScore.show()
 
-  return cellGScore.select(col("x"), col("y"), col("z")).coalesce(1)// YOU NEED TO CHANGE THIS PART
+  val ret = cellGScore.select(col("x"), col("y"), col("z")) // YOU NEED TO CHANGE THIS PART
+  println("displaying ret")
+  ret.show()
+  return ret.coalesce(1)
 }
 }
