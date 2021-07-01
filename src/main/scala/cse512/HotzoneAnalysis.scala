@@ -36,7 +36,7 @@ object HotzoneAnalysis {
     println("display hotzone count df")
     hotzoneDf.show()
 
-    return hotzoneDf // YOU NEED TO CHANGE THIS PART
+    return hotzoneDf.coalesce(1) // YOU NEED TO CHANGE THIS PART
   }
 
 }
