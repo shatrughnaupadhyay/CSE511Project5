@@ -47,8 +47,10 @@ object HotcellUtils {
     return calendar.get(Calendar.DAY_OF_MONTH)
   }
 
-  def calculateG(attrAgg: Double, N: Double, n:Double, X_bar:Double, S:Double): Double = {
-    val G = (attrAgg - X_bar * N) / (S * sqrt((n*N-pow(N, 2)) / (n-1)))
-    return G
+  def CheckContain(x:Int, y:Int, z:Int): Boolean = {
+    if((x >= minX) && (x <= maxX) && (y >= minY) && (y <= maxY) && (z >= minZ) && (z <= maxZ)){
+      return true
+    }
+    return ((x >= minX) && (x <= maxX) && (y >= minY) && (y <= maxY) && (z >= minZ) && (z <= maxZ))
   }
 }
